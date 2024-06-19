@@ -6,7 +6,6 @@ author: Zeqi Lai (zeqilai@tsinghua.edu.cn) and Yangtao Deng (dengyt21@mails.tsin
 """
 
 from starrynet.sn_observer import *
-from starrynet.sn_orchestrater import *
 from starrynet.sn_synchronizer import *
 
 if __name__ == "__main__":
@@ -48,10 +47,6 @@ if __name__ == "__main__":
     print("LLA: " + str(LLA))
 
     sn.get_utility(time_index)  # CPU and memory useage
-
-    # IPList of a node
-    IP_list = sn.get_IP(node_index1)
-    print("IP: " + str(IP_list))
 
     ratio = 0.3
     time_index = 5

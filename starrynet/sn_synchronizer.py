@@ -68,12 +68,6 @@ class StarryNet():
         self.remote_ssh, self.transport = sn_init_remote_machine(
             sn_args.remote_machine_IP, sn_args.remote_machine_username,
             sn_args.remote_machine_password)
-        if self.remote_ssh is None:
-            print('Remote SSH login failure.')
-            return
-        if self.transport is None:
-            print('Remote transport login failure.')
-            return
         self.remote_ftp = sn_init_remote_ftp(self.transport)
         if self.remote_ftp is None:
             print('Remote ftp login failure.')
@@ -108,37 +102,13 @@ class StarryNet():
         self.observer.generate_conf(self.remote_ssh, self.remote_ftp)
 
     def create_nodes(self):
-        # Initialize each machine in multiple threads.
-        sn_thread = sn_Node_Init_Thread(self.remote_ssh,
-                                        self.docker_service_name,
-                                        self.node_size, self.container_id_list,
-                                        self.container_global_idx)
-        sn_thread.start()
-        sn_thread.join()
-        self.container_id_list = sn_get_container_info(self.remote_ssh)
-        print("Constellation initialization done. " +
-              str(len(self.container_id_list)) + " have been created.")
+        pass
 
     def create_links(self):
-        print("Create Links.")
-        isl_thread = sn_Link_Init_Thread(
-            self.remote_ssh, self.remote_ftp, self.orbit_number,
-            self.sat_number, self.constellation_size, self.fac_num,
-            self.file_path, self.configuration_file_path, self.sat_bandwidth,
-            self.sat_ground_bandwidth, self.sat_loss, self.sat_ground_loss)
-        isl_thread.start()
-        isl_thread.join()
-        print("Link initialization done.")
+        pass
 
     def run_routing_deamon(self):
-        routing_thread = sn_Routing_Init_Thread(
-            self.remote_ssh, self.remote_ftp, self.orbit_number,
-            self.sat_number, self.constellation_size, self.fac_num,
-            self.file_path, self.sat_bandwidth, self.sat_ground_bandwidth,
-            self.sat_loss, self.sat_ground_loss)
-        routing_thread.start()
-        routing_thread.join()
-        print("Bird routing in all containers are running.")
+        pass
 
     def get_distance(self, sat1_index, sat2_index, time_index):
         delaypath = self.configuration_file_path + "/" + self.file_path + '/delay/' + str(
@@ -178,16 +148,6 @@ class StarryNet():
         f = open(path)
         ADJ = f.readlines()
         return ADJ[sat_index - 1]
-
-    def get_IP(self, sat_index):
-        IP_info = sn_remote_cmd(
-            self.remote_ssh, "docker inspect" +
-            " --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}\n{{end}}'"
-            + " ovs_container_" + str(sat_index))
-        ip_list = []
-        for i in range(len(IP_info) - 2):
-            ip_list.append(IP_info[i].split()[0])
-        return ip_list
 
     def set_damage(self, damaging_ratio, time_index):
         self.damage_ratio.append(damaging_ratio)
@@ -233,8 +193,5 @@ class StarryNet():
         sn_thread.join()
 
     def stop_emulation(self):
-        # Stop emulation in a new thread.
-        sn_thread = sn_Emulation_Stop_Thread(self.remote_ssh, self.remote_ftp,
-                                             self.file_path)
-        sn_thread.start()
-        sn_thread.join()
+        # Since we don't use remote machines and docker anymore, there is nothing to do here.
+        pass

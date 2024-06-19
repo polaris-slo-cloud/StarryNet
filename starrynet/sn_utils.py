@@ -8,27 +8,16 @@ from time import sleep
 import time
 import numpy
 import random
+import threading
 """
 Starrynet utils that are used in sn_synchronizer
 author: Yangtao Deng (dengyt21@mails.tsinghua.edu.cn) and Zeqi Lai (zeqilai@tsinghua.edu.cn)
 """
-try:
-    import threading
-except ImportError:
-    os.system("pip3 install threading")
-    import threading
 
-try:
-    import paramiko
-except ImportError:
-    os.system("pip3 install paramiko")
-    import paramiko
 
-try:
-    import requests
-except ImportError:
-    os.system("pip3 install requests")
-    import requests
+class MockSFTPClient:
+    def put(self, **kwargs):
+        pass
 
 
 def get_right_satellite(current_sat_id, current_orbit_id, orbit_num):
@@ -157,31 +146,15 @@ def sn_get_param(file_):
 
 
 def sn_init_remote_machine(host, username, password):
-    # transport = paramiko.Transport((host, 22))
-    # transport.connect(username=username, password=password)
-    remote_machine_ssh = paramiko.SSHClient()
-    # remote_machine_ssh._transport = transport
-    remote_machine_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    remote_machine_ssh.connect(hostname=host,
-                               port=22,
-                               username=username,
-                               password=password)
-    transport = paramiko.Transport((host, 22))
-    transport.connect(username=username, password=password)
-    return remote_machine_ssh, transport
-    # transport.close()
+    return None, None
 
 
 def sn_init_remote_ftp(transport):
-    ftp_client = paramiko.SFTPClient.from_transport(transport)  ## ftp client
-    return ftp_client
+    return MockSFTPClient()
 
 
 def sn_remote_cmd(remote_ssh, cmd):
-    stdin, stdout, stderr = remote_ssh.exec_command(cmd, get_pty=True)
-    lines = stdout.readlines()
-    return lines
+    pass
 
 
 # A thread designed for initializing working directory.
@@ -194,7 +167,7 @@ class sn_init_directory_thread(threading.Thread):
         self.configuration_file_path = configuration_file_path
 
     def run(self):
-        # Reset docker environment.
+        # Reset container environment.
         os.system("rm " + self.configuration_file_path + "/" + self.file_path +
                   "/*.txt")
         if os.path.exists(self.file_path + "/mid_files") == False:
@@ -208,146 +181,12 @@ class sn_init_directory_thread(threading.Thread):
         sn_remote_cmd(self.remote_ssh, "mkdir ~/" + self.file_path + "/delay")
 
 
-# A thread designed for initializing constellation nodes.
-class sn_Node_Init_Thread(threading.Thread):
-
-    def __init__(self, remote_ssh, docker_service_name, node_size,
-                 container_id_list, container_global_idx):
-        threading.Thread.__init__(self)
-        self.remote_ssh = remote_ssh
-        self.docker_service_name = docker_service_name
-        self.node_size = node_size
-        self.container_global_idx = container_global_idx
-        self.container_id_list = copy.deepcopy(container_id_list)
-
-    def run(self):
-
-        # Reset docker environment.
-        sn_reset_docker_env(self.remote_ssh, self.docker_service_name,
-                            self.node_size)
-        # Get container list in each machine.
-        self.container_id_list = sn_get_container_info(self.remote_ssh)
-        # Rename all containers with the global idx
-        sn_rename_all_container(self.remote_ssh, self.container_id_list,
-                                self.container_global_idx)
-
-
 def sn_get_container_info(remote_machine_ssh):
-    #  Read all container information in all_container_info
-    all_container_info = sn_remote_cmd(remote_machine_ssh, "docker ps")
-    n_container = len(all_container_info) - 1
-    container_id_list = []
-    for container_idx in range(1, n_container + 1):
-        container_id_list.append(all_container_info[container_idx].split()[0])
-
-    return container_id_list
+    pass
 
 
 def sn_delete_remote_network_bridge(remote_ssh):
-    all_br_info = sn_remote_cmd(remote_ssh, "docker network ls")
-    for line in all_br_info:
-        if "La" in line or "Le" in line or "GS" in line:
-            network_name = line.split()[1]
-            print('docker network rm ' + network_name)
-            sn_remote_cmd(remote_ssh, 'docker network rm ' + network_name)
-
-
-def sn_reset_docker_env(remote_ssh, docker_service_name, node_size):
-    print("Reset docker environment for constellation emulation ...")
-    print("Remove legacy containers.")
-    print(sn_remote_cmd(remote_ssh,
-                        "docker service rm " + docker_service_name))
-    print(sn_remote_cmd(remote_ssh, "docker rm -f $(docker ps -a -q)"))
-    print("Remove legacy emulated ISLs.")
-    sn_delete_remote_network_bridge(remote_ssh)
-    print("Creating new containers...")
-    sn_remote_cmd(
-        remote_ssh, "docker service create --replicas " + str(node_size) +
-        " --name " + str(docker_service_name) +
-        " --cap-add ALL lwsen/starlab_node:1.0 ping www.baidu.com")
-
-
-def sn_rename_all_container(remote_ssh, container_id_list, new_idx):
-    print("Rename all containers ...")
-    new_idx = 1
-    for container_id in container_id_list:
-        sn_remote_cmd(
-            remote_ssh, "docker rename " + str(container_id) +
-            " ovs_container_" + str(new_idx))
-        new_idx = new_idx + 1
-
-
-# A thread designed for initializing constellation links.
-class sn_Link_Init_Thread(threading.Thread):
-
-    def __init__(self, remote_ssh, remote_ftp, orbit_num, sat_num,
-                 constellation_size, fac_num, file_path,
-                 configuration_file_path, sat_bandwidth, sat_ground_bandwidth,
-                 sat_loss, sat_ground_loss):
-        threading.Thread.__init__(self)
-        self.remote_ssh = remote_ssh
-        self.constellation_size = constellation_size
-        self.fac_num = fac_num
-        self.orbit_num = orbit_num
-        self.sat_num = sat_num
-        self.file_path = file_path
-        self.configuration_file_path = configuration_file_path
-        self.sat_bandwidth = sat_bandwidth
-        self.sat_ground_bandwidth = sat_ground_bandwidth
-        self.sat_loss = sat_loss
-        self.sat_ground_loss = sat_ground_loss
-        self.remote_ftp = remote_ftp
-
-    def run(self):
-        print('Run in link init thread.')
-        self.remote_ftp.put(
-            os.path.join(os.getcwd(), "starrynet/sn_orchestrater.py"),
-            self.file_path + "/sn_orchestrater.py")
-        self.remote_ftp.put(
-            self.configuration_file_path + "/" + self.file_path +
-            '/delay/1.txt', self.file_path + "/1.txt")
-        print('Initializing links ...')
-        sn_remote_cmd(
-            self.remote_ssh, "python3 " + self.file_path +
-            "/sn_orchestrater.py" + " " + str(self.orbit_num) + " " +
-            str(self.sat_num) + " " + str(self.constellation_size) + " " +
-            str(self.fac_num) + " " + str(self.sat_bandwidth) + " " +
-            str(self.sat_loss) + " " + str(self.sat_ground_bandwidth) + " " +
-            str(self.sat_ground_loss) + " " + self.file_path + "/1.txt")
-
-
-# A thread designed for initializing bird routing.
-class sn_Routing_Init_Thread(threading.Thread):
-
-    def __init__(self, remote_ssh, remote_ftp, orbit_num, sat_num,
-                 constellation_size, fac_num, file_path, sat_bandwidth,
-                 sat_ground_bandwidth, sat_loss, sat_ground_loss):
-        threading.Thread.__init__(self)
-        self.remote_ssh = remote_ssh
-        self.constellation_size = constellation_size
-        self.fac_num = fac_num
-        self.orbit_num = orbit_num
-        self.sat_num = sat_num
-        self.file_path = file_path
-        self.sat_bandwidth = sat_bandwidth
-        self.sat_ground_bandwidth = sat_ground_bandwidth
-        self.sat_loss = sat_loss
-        self.sat_ground_loss = sat_ground_loss
-        self.remote_ftp = remote_ftp
-
-    def run(self):
-        print(
-            "Copy bird configuration file to each container and run routing process."
-        )
-        self.remote_ftp.put(
-            os.path.join(os.getcwd(), "starrynet/sn_orchestrater.py"),
-            self.file_path + "/sn_orchestrater.py")
-        print('Initializing routing ...')
-        sn_remote_cmd(
-            self.remote_ssh, "python3 " + self.file_path +
-            "/sn_orchestrater.py" + " " + str(self.constellation_size) + " " +
-            str(self.fac_num) + " " + self.file_path)
-        print("Routing initialized!")
+    pass
 
 
 # A thread designed for emulation.
@@ -626,10 +465,7 @@ class sn_Emulation_Start_Thread(threading.Thread):
 
 
 def sn_check_utility(time_index, remote_ssh, file_path):
-    result = sn_remote_cmd(remote_ssh, "vmstat")
-    f = open(file_path + "/utility-info" + "_" + str(time_index) + ".txt", "w")
-    f.writelines(result)
-    f.close()
+    pass
 
 
 def sn_update_delay(file_path, configuration_file_path, timeptr,
@@ -689,217 +525,28 @@ def sn_recover(damage_list, sat_loss, remote_ssh, remote_ftp, file_path,
 
 
 def sn_sr(src, des, target, container_id_list, remote_ssh):
-    ifconfig_output = sn_remote_cmd(
-        remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-        " ifconfig | sed 's/[ \t].*//;/^\(eth0\|\)\(lo\|\)$/d'")
-    des_IP = sn_remote_cmd(
-        remote_ssh,
-        "docker exec -it " + str(container_id_list[des - 1]) + " ifconfig " +
-        ifconfig_output[0][:-1] + "|awk -F '[ :]+' 'NR==2{print $4}'")
-    target_IP = sn_remote_cmd(
-        remote_ssh, "docker exec -it " + str(container_id_list[target - 1]) +
-        " ifconfig B" + str(target) + "-eth" + str(src) +
-        "|awk -F '[ :]+' 'NR==2{print $4}'")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[src - 1]) +
-        " ip route del " + str(des_IP[0][:-3]) + "0/24")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[src - 1]) +
-        " ip route add " + str(des_IP[0][:-3]) + "0/24 dev B%d-eth%d via " %
-        (src, target) + target_IP[0])
-    print("docker exec -d " + str(container_id_list[src - 1]) +
-          " ip route add " + str(des_IP[0][:-3]) + "0/24 dev B%d-eth%d via " %
-          (src, target) + target_IP[0])
+    pass
 
 
 def sn_ping(src, des, time_index, constellation_size, container_id_list,
             file_path, configuration_file_path, remote_ssh):
-    if des <= constellation_size:
-        ifconfig_output = sn_remote_cmd(
-            remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig | sed 's/[ \t].*//;/^\(eth0\|\)\(lo\|\)$/d'")
-        des_IP = sn_remote_cmd(
-            remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig " + ifconfig_output[0][:-1] +
-            "|awk -F '[ :]+' 'NR==2{print $4}'")
-    else:
-        des_IP = sn_remote_cmd(
-            remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig B" + str(des) +
-            "-default |awk -F '[ :]+' 'NR==2{print $4}'")
-    ping_result = sn_remote_cmd(
-        remote_ssh, "docker exec -i " + str(container_id_list[src - 1]) +
-        " ping " + str(des_IP[0][:-1]) + " -c 4 -i 0.01 ")
-    f = open(
-        configuration_file_path + "/" + file_path + "/ping-" + str(src) + "-" +
-        str(des) + "_" + str(time_index) + ".txt", "w")
-    f.writelines(ping_result)
-    f.close()
+    pass
 
 
 def sn_perf(src, des, time_index, constellation_size, container_id_list,
             file_path, configuration_file_path, remote_ssh):
-    if des <= constellation_size:
-        ifconfig_output = sn_remote_cmd(
-            remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig | sed 's/[ \t].*//;/^\(eth0\|\)\(lo\|\)$/d'")
-        des_IP = sn_remote_cmd(
-            remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig " + ifconfig_output[0][:-1] +
-            "|awk -F '[ :]+' 'NR==2{print $4}'")
-    else:
-        des_IP = sn_remote_cmd(
-            remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig B" + str(des) +
-            "-default |awk -F '[ :]+' 'NR==2{print $4}'")
-
-    sn_remote_cmd(
-        remote_ssh,
-        "docker exec -id " + str(container_id_list[des - 1]) + " iperf3 -s ")
-    print("iperf server success")
-    perf_result = sn_remote_cmd(
-        remote_ssh, "docker exec -i " + str(container_id_list[src - 1]) +
-        " iperf3 -c " + str(des_IP[0][:-1]) + " -t 5 ")
-    print("iperf client success")
-    f = open(
-        configuration_file_path + "/" + file_path + "/perf-" + str(src) + "-" +
-        str(des) + "_" + str(time_index) + ".txt", "w")
-    f.writelines(perf_result)
-    f.close()
+    pass
 
 
 def sn_route(src, time_index, file_path, configuration_file_path,
              container_id_list, remote_ssh):
-    route_result = sn_remote_cmd(
-        remote_ssh,
-        "docker exec -it " + str(container_id_list[src - 1]) + " route ")
-    f = open(
-        configuration_file_path + "/" + file_path + "/route-" + str(src) +
-        "_" + str(time_index) + ".txt", "w")
-    f.writelines(route_result)
-    f.close()
+    pass
 
 
 def sn_establish_new_GSL(container_id_list, matrix, constellation_size, bw,
                          loss, sat_index, GS_index, remote_ssh):
-    i = sat_index
-    j = GS_index
-    # IP address  (there is a link between i and j)
-    delay = str(matrix[i - 1][j - 1])
-    address_16_23 = (j - constellation_size) & 0xff
-    address_8_15 = i & 0xff
-    GSL_name = "GSL_" + str(i) + "-" + str(j)
-    # Create internal network in docker.
-    sn_remote_cmd(
-        remote_ssh, 'docker network create ' + GSL_name + " --subnet 9." +
-        str(address_16_23) + "." + str(address_8_15) + ".0/24")
-    print('[Create GSL:]' + 'docker network create ' + GSL_name +
-          " --subnet 9." + str(address_16_23) + "." + str(address_8_15) +
-          ".0/24")
-    sn_remote_cmd(
-        remote_ssh, 'docker network connect ' + GSL_name + " " +
-        str(container_id_list[i - 1]) + " --ip 9." + str(address_16_23) + "." +
-        str(address_8_15) + ".50")
-    ifconfig_output = sn_remote_cmd(
-        remote_ssh, "docker exec -it " + str(container_id_list[i - 1]) +
-        " ip addr | grep -B 2 9." + str(address_16_23) + "." +
-        str(address_8_15) +
-        ".50 | head -n 1 | awk -F: '{ print $2 }' | tr -d [:blank:]")
-    target_interface = str(ifconfig_output[0]).split("@")[0]
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[i - 1]) +
-        " ip link set dev " + target_interface + " down")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[i - 1]) +
-        " ip link set dev " + target_interface + " name " + "B" +
-        str(i - 1 + 1) + "-eth" + str(j))
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[i - 1]) +
-        " ip link set dev B" + str(i - 1 + 1) + "-eth" + str(j) + " up")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[i - 1]) +
-        " tc qdisc add dev B" + str(i - 1 + 1) + "-eth" + str(j) +
-        " root netem delay " + str(delay) + "ms")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[i - 1]) +
-        " tc qdisc add dev B" + str(i - 1 + 1) + "-eth" + str(j) +
-        " root netem loss " + str(loss) + "%")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[i - 1]) +
-        " tc qdisc add dev B" + str(i - 1 + 1) + "-eth" + str(j) +
-        " root netem rate " + str(bw) + "Gbps")
-    print('[Add current node:]' + 'docker network connect ' + GSL_name + " " +
-          str(container_id_list[i - 1]) + " --ip 10." + str(address_16_23) +
-          "." + str(address_8_15) + ".50")
-    sn_remote_cmd(
-        remote_ssh, 'docker network connect ' + GSL_name + " " +
-        str(container_id_list[j - 1]) + " --ip 9." + str(address_16_23) + "." +
-        str(address_8_15) + ".60")
-    ifconfig_output = sn_remote_cmd(
-        remote_ssh, "docker exec -it " + str(container_id_list[j - 1]) +
-        " ip addr | grep -B 2 9." + str(address_16_23) + "." +
-        str(address_8_15) +
-        ".60 | head -n 1 | awk -F: '{ print $2 }' | tr -d [:blank:]")
-    target_interface = str(ifconfig_output[0]).split("@")[0]
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[j - 1]) +
-        " ip link set dev " + target_interface + " down")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[j - 1]) +
-        " ip link set dev " + target_interface + " name " + "B" + str(j) +
-        "-eth" + str(i - 1 + 1))
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[j - 1]) +
-        " ip link set dev B" + str(j) + "-eth" + str(i - 1 + 1) + " up")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[j - 1]) +
-        " tc qdisc add dev B" + str(j) + "-eth" + str(i - 1 + 1) +
-        " root netem delay " + str(delay) + "ms")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[j - 1]) +
-        " tc qdisc add dev B" + str(j) + "-eth" + str(i - 1 + 1) +
-        " root netem loss " + str(loss) + "%")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " + str(container_id_list[j - 1]) +
-        " tc qdisc add dev B" + str(j) + "-eth" + str(i - 1 + 1) +
-        " root netem rate " + str(bw) + "Gbps")
-    print('[Add right node:]' + 'docker network connect ' + GSL_name + " " +
-          str(container_id_list[j - 1]) + " --ip 10." + str(address_16_23) +
-          "." + str(address_8_15) + ".60")
+    pass
 
 
 def sn_del_link(first_index, second_index, container_id_list, remote_ssh):
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " +
-        str(container_id_list[second_index - 1]) + " ip link set dev B" +
-        str(second_index) + "-eth" + str(first_index) + " down")
-    sn_remote_cmd(
-        remote_ssh, "docker exec -d " +
-        str(container_id_list[first_index - 1]) + " ip link set dev B" +
-        str(first_index) + "-eth" + str(second_index) + " down")
-    GSL_name = "GSL_" + str(first_index) + "-" + str(second_index)
-    sn_remote_cmd(
-        remote_ssh, 'docker network disconnect ' + GSL_name + " " +
-        str(container_id_list[first_index - 1]))
-    sn_remote_cmd(
-        remote_ssh, 'docker network disconnect ' + GSL_name + " " +
-        str(container_id_list[second_index - 1]))
-    sn_remote_cmd(remote_ssh, 'docker network rm ' + GSL_name)
-
-
-# A thread designed for stopping the emulation.
-class sn_Emulation_Stop_Thread(threading.Thread):
-
-    def __init__(self, remote_ssh, remote_ftp, file_path):
-        threading.Thread.__init__(self)
-        self.remote_ssh = remote_ssh
-        self.remote_ftp = remote_ftp
-        self.file_path = file_path
-
-    def run(self):
-        print("Deleting all native bridges and containers...")
-        self.remote_ftp.put(
-            os.path.join(os.getcwd(), "starrynet/sn_orchestrater.py"),
-            self.file_path + "/sn_orchestrater.py")
-        sn_remote_cmd(self.remote_ssh,
-                      "python3 " + self.file_path + "/sn_orchestrater.py")
+    pass
