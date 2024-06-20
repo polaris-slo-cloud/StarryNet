@@ -29,7 +29,7 @@ from os import isatty
 from select import poll, POLLIN
 import sys
 
-from starrynet.log import info, output, error
+from .log import info, output, error
 # from starrynet.term import makeTerms, runX11
 # from starrynet.util import ( quietRun, dumpNodeConnections,
 #                            dumpPorts )

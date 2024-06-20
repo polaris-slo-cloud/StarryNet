@@ -15,10 +15,10 @@ import time
 
 if 'PYTHONPATH' in os.environ:
     sys.path = os.environ['PYTHONPATH'].split(':') + sys.path
-from starrynet.sn_observer import *
-from starrynet.sn_synchronizer import *
-import starrynet.cli
-from starrynet.log import lg, LEVELS, info, debug, warn, error, output
+from ..starrynet.sn_observer import *
+from ..starrynet.sn_synchronizer import *
+from ..starrynet import *
+from ..starrynet.log import lg, LEVELS, info, debug, warn, error, output
 
 
 def cleanup():
