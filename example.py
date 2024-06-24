@@ -33,6 +33,10 @@ if __name__ == "__main__":
     node_distance = sn.get_distance(node_index1, node_index2, time_index)
     print("node_distance (km): " + str(node_distance))
 
+    # delay between nodes at a certain time
+    node_delay = sn.get_delay(node_index1, node_index2, time_index)
+    print("node_delay (ms): " + str(node_delay))
+
     # neighbor node indexes of node at a certain time
     neighbors_index = sn.get_neighbors(node_index1, time_index)
     print("neighbors_index: " + str(neighbors_index))

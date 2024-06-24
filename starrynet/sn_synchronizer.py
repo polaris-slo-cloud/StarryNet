@@ -110,11 +110,15 @@ class StarryNet():
     def run_routing_deamon(self):
         pass
 
-    def get_distance(self, sat1_index, sat2_index, time_index):
+    def get_delay(self, sat1_index, sat2_index, time_index):
         delaypath = self.configuration_file_path + "/" + self.file_path + '/delay/' + str(
             time_index) + '.txt'
         adjacency_matrix = sn_get_param(delaypath)
         delay = float(adjacency_matrix[sat1_index - 1][sat2_index - 1])
+        return delay
+
+    def get_distance(self, sat1_index, sat2_index, time_index):
+        delay = self.get_delay(sat1_index, sat2_index, time_index)
         dis = delay * (17.31 / 29.5 * 299792.458) / 1000  # km
         return dis
 
