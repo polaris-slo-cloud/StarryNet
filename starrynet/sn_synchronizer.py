@@ -38,7 +38,7 @@ class StarryNet():
         self.sat_ground_bandwidth = sn_args.sat_ground_bandwidth
         self.sat_loss = sn_args.sat_loss
         self.sat_ground_loss = sn_args.sat_ground_loss
-        self.ground_num = sn_args.ground_num
+        self.ground_num = len(GS_lat_long)
         self.multi_machine = sn_args.multi_machine
         self.antenna_number = sn_args.antenna_number
         self.antenna_inclination = sn_args.antenna_inclination

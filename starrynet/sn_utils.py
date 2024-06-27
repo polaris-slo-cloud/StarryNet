@@ -68,7 +68,6 @@ def sn_load_file(path, GS_lat_long):
     data['sat_ground_bw'] = table["sat-ground bandwidth (\"X\" Gbps)"]
     data['sat_loss'] = table["satellite link loss (\"X\"% )"]
     data['sat_ground_loss'] = table["sat-ground loss (\"X\"% )"]
-    data['ground_num'] = table["GS number"]
     data['multi_machine'] = table[
         "multi-machine (\"0\" for no, \"1\" for yes)"]
     data['antenna_number'] = table["antenna number"]
@@ -110,7 +109,6 @@ def sn_load_file(path, GS_lat_long):
     parser.add_argument('--sat_ground_loss',
                         type=int,
                         default=data['sat_ground_loss'])
-    parser.add_argument('--ground_num', type=int, default=data['ground_num'])
     parser.add_argument('--multi_machine',
                         type=int,
                         default=data['multi_machine'])
