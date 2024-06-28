@@ -47,7 +47,7 @@ class StarryNet():
         self.AS = AS
         self.configuration_file_path = os.path.dirname(
             os.path.abspath(configuration_file_path))
-        self.file_path = './' + sn_args.cons_name + '-' + str(
+        self.file_path = './sim-data-' + sn_args.cons_name + '-' + str(
             sn_args.orbit_number) + '-' + str(sn_args.sat_number) + '-' + str(
                 sn_args.satellite_altitude) + '-' + str(
                     sn_args.inclination
