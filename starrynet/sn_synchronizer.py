@@ -13,15 +13,16 @@ class StarryNet():
     def __init__(self,
                  configuration_file_path,
                  GS_lat_long,
+                 sats_per_orbit_override: int | None = None,
                  hello_interval=10,
-                 AS=[]):
+                 AS: list[list[int]] | None = None):
         # Initialize constellation information.
         sn_args = sn_load_file(configuration_file_path, GS_lat_long)
         self.name = sn_args.cons_name
         self.satellite_altitude = sn_args.satellite_altitude
         self.inclination = sn_args.inclination
         self.orbit_number = sn_args.orbit_number
-        self.sat_number = sn_args.sat_number
+        self.sat_number = sats_per_orbit_override or sn_args.sat_number
         self.fac_num = sn_args.fac_num
         self.constellation_size = self.orbit_number * self.sat_number
         self.node_size = self.orbit_number * self.sat_number + sn_args.fac_num
@@ -44,11 +45,11 @@ class StarryNet():
         self.antenna_inclination = sn_args.antenna_inclination
         self.container_global_idx = 1
         self.hello_interval = hello_interval
-        self.AS = AS
+        self.AS = AS or [[1, self.node_size]] # If autonomous systems were not specified, we put all nodes into the same AS
         self.configuration_file_path = os.path.dirname(
             os.path.abspath(configuration_file_path))
         self.file_path = './sim-data-' + sn_args.cons_name + '-' + str(
-            sn_args.orbit_number) + '-' + str(sn_args.sat_number) + '-' + str(
+            sn_args.orbit_number) + '-' + str(self.sat_number) + '-' + str(
                 sn_args.satellite_altitude) + '-' + str(
                     sn_args.inclination
                 ) + '-' + sn_args.link_style + '-' + sn_args.link_policy
