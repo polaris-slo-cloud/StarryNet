@@ -6,6 +6,8 @@ author: Zeqi Lai (zeqilai@tsinghua.edu.cn) and Yangtao Deng (dengyt21@mails.tsin
 """
 from .sn_observer import *
 from .sn_utils import *
+from numpy import float64
+from numpy.typing import NDArray
 
 
 class StarryNet():
@@ -117,6 +119,12 @@ class StarryNet():
         adjacency_matrix = sn_get_param(delaypath)
         delay = float(adjacency_matrix[sat1_index - 1][sat2_index - 1])
         return delay
+
+    def get_delay_matrix(self, time_index: int) -> NDArray[float64]:
+        delaypath = self.configuration_file_path + "/" + self.file_path + '/delay/' + str(
+            time_index) + '.npy'
+        adjacency_matrix = sn_get_param(delaypath)
+        return adjacency_matrix
 
     def get_distance(self, sat1_index, sat2_index, time_index):
         delay = self.get_delay(sat1_index, sat2_index, time_index)
