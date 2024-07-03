@@ -134,13 +134,14 @@ def sn_load_file(path, GS_lat_long):
 
 
 def sn_get_param(file_):
-    f = open(file_)
-    ADJ = f.readlines()
-    for i in range(len(ADJ)):
-        ADJ[i] = ADJ[i].strip('\n')
-    ADJ = [x.split(',') for x in ADJ]
-    f.close()
-    return ADJ
+    return numpy.load(file=file_, allow_pickle=True)
+    # f = open(file_)
+    # ADJ = f.readlines()
+    # for i in range(len(ADJ)):
+    #     ADJ[i] = ADJ[i].strip('\n')
+    # ADJ = [x.split(',') for x in ADJ]
+    # f.close()
+    # return ADJ
 
 
 def sn_init_remote_machine(host, username, password):
@@ -350,7 +351,7 @@ class sn_Emulation_Start_Thread(threading.Thread):
                         f = tmp
                     print("add link", s, f)
                     current_topo_path = self.configuration_file_path + "/" + self.file_path + '/delay/' + str(
-                        current_time) + '.txt'
+                        current_time) + '.npy'
                     matrix = sn_get_param(current_topo_path)
                     sn_establish_new_GSL(self.container_id_list, matrix,
                                          self.constellation_size,

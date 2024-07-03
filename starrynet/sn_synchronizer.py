@@ -113,7 +113,7 @@ class StarryNet():
 
     def get_delay(self, sat1_index, sat2_index, time_index):
         delaypath = self.configuration_file_path + "/" + self.file_path + '/delay/' + str(
-            time_index) + '.txt'
+            time_index) + '.npy'
         adjacency_matrix = sn_get_param(delaypath)
         delay = float(adjacency_matrix[sat1_index - 1][sat2_index - 1])
         return delay
@@ -126,7 +126,7 @@ class StarryNet():
     def get_neighbors(self, sat_index, time_index):
         neighbors = []
         delaypath = self.configuration_file_path + "/" + self.file_path + '/delay/' + str(
-            time_index) + '.txt'
+            time_index) + '.npy'
         adjacency_matrix = sn_get_param(delaypath)
         sats = self.orbit_number * self.sat_number
         for i in range(sats):
@@ -137,7 +137,7 @@ class StarryNet():
     def get_GSes(self, sat_index, time_index):
         GSes = []
         delaypath = self.configuration_file_path + "/" + self.file_path + '/delay/' + str(
-            time_index) + '.txt'
+            time_index) + '.npy'
         adjacency_matrix = sn_get_param(delaypath)
         sats = self.orbit_number * self.sat_number
         for i in range(sats, len(adjacency_matrix)):

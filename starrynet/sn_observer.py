@@ -104,10 +104,11 @@ class Observer():
                     delay_matrix[num_sat2][num_sat1] = delay1
                     delay_matrix[num_sat1][num_sat3] = delay2
                     delay_matrix[num_sat3][num_sat1] = delay2
-            np.savetxt(path + "/delay/" + str(cur_time + 1) + ".txt",
-                       delay_matrix,
-                       fmt='%.2f',
-                       delimiter=',')
+            # np.savetxt(path + "/delay/" + str(cur_time + 1) + ".txt",
+            #            delay_matrix,
+            #            fmt='%.2f',
+            #            delimiter=',')
+            np.save(path + "/delay/" + str(cur_time + 1) + ".npy", delay_matrix)
             for i in range(len(delay_matrix)):
                 delay_matrix[i, ...] = 0
 
@@ -153,7 +154,7 @@ class Observer():
                           for i in range(no_leo + no_geo + no_fac)]
                          for k in range(duration)]
         for time in range(1, duration + 1):
-            topo_path = path + '/delay/' + str(time) + ".txt"
+            topo_path = path + '/delay/' + str(time) + ".npy"
             adjacency_matrix = sn_get_param(topo_path)
             for i in range(len(adjacency_matrix)):
                 for j in range(len(adjacency_matrix[i])):
@@ -168,7 +169,7 @@ class Observer():
         for i in range(duration - 1):
             l1 = topo_duration[i]
             l2 = topo_duration[i + 1]
-            if l1 == l2:
+            if np.array_equal(l1, l2):
                 continue
             else:
                 changetime.append(i)
@@ -184,7 +185,7 @@ class Observer():
         for i in range(duration - 1):
             pre_lines = topo_duration[i]
             now_lines = topo_duration[i + 1]
-            if pre_lines == now_lines:
+            if np.array_equal(pre_lines, now_lines):
                 continue
             else:
                 f.write("time " + str(i + 2) + ":\n")  # time started from 1
@@ -459,7 +460,7 @@ class Observer():
                 remote_ssh, "mkdir ~/" + self.file_path + "/conf/bird-" +
                 str(self.orbit_number * self.sat_number) + "-" +
                 str(len(self.GS_lat_long)))
-        path = self.configuration_file_path + "/" + self.file_path + "/delay/1.txt"
+        path = self.configuration_file_path + "/" + self.file_path + "/delay/1.npy"
         matrix = sn_get_param(path)
         num_backbone = self.orbit_number * self.sat_number + len(
             self.GS_lat_long)
