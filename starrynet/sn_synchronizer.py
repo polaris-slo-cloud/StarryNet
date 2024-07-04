@@ -154,6 +154,20 @@ class StarryNet():
     def get_utility(self, time_index):
         self.utility_checking_time.append(time_index)
 
+    def get_positions(self, time_index) -> list[tuple[float, float, float]]:
+        '''Gets the satellite positions as a list of (lat, long, altitude)'''
+        path = self.configuration_file_path + "/" + self.file_path + '/position/' + '/%d.txt' % time_index
+        with open(path) as f:
+            lines = f.readlines()
+            positions: list[tuple[float, float, float]] = []
+            for line in lines:
+                parts = line.split(',')
+                if len(parts) != 3:
+                    continue
+                loc = (float(parts[0].strip()), float(parts[1].strip()), float(parts[2].strip()))
+                positions.append(loc)
+            return positions
+
     def get_position(self, sat_index, time_index):
         path = self.configuration_file_path + "/" + self.file_path + '/position/' + '/%d.txt' % time_index
         f = open(path)
