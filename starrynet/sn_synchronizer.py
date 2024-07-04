@@ -101,8 +101,6 @@ class StarryNet():
         sn_thread.join()
         # Initiate a necessary delay and position data for emulation
         self.observer.calculate_delay()
-        # Generate configuration file for routing
-        self.observer.generate_conf(self.remote_ssh, self.remote_ftp)
 
     def create_nodes(self):
         pass
