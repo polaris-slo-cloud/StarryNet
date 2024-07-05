@@ -110,6 +110,7 @@ class Observer():
                        delimiter=',')
             for i in range(len(delay_matrix)):
                 delay_matrix[i, ...] = 0
+            self.__print_progress(cur_time + 1, duration, 'Computing delays')
 
     def to_cbf(self, lat_long,
                length):  # the xyz coordinate system. length: number of nodes
@@ -299,6 +300,10 @@ class Observer():
             cbf_per_sec = self.to_cbf(lla_per_sec[t], num_of_sat)
             sat_cbf.append(cbf_per_sec)
             sat_lla.append(lla_per_sec[t])
+
+        # Allow reclaiming memory
+        result = None
+        lla_per_sec = None
 
         if len(self.GS_lat_long) != 0:
             fac_cbf = self.to_cbf(self.GS_lat_long, len(self.GS_lat_long))
@@ -523,3 +528,7 @@ class Observer():
                                 len(self.GS_lat_long), ID, Q, remote_ftp)
 
         return error
+
+    def __print_progress(self, time_index: int, duration: int, msg: str):
+        if time_index % 10 == 0 or time_index == duration:
+            print(f'{msg}: {time_index} of {duration}')
