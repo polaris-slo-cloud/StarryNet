@@ -111,6 +111,7 @@ class Observer():
             np.save(path + "/delay/" + str(cur_time + 1) + ".npy", delay_matrix)
             for i in range(len(delay_matrix)):
                 delay_matrix[i, ...] = 0
+            self.__print_progress(cur_time + 1, duration, 'Computing delays')
 
     def to_cbf(self, lat_long,
                length):  # the xyz coordinate system. length: number of nodes
@@ -302,6 +303,10 @@ class Observer():
             sat_cbf.append(cbf_per_sec)
             sat_lla.append(lla_per_sec[t])
 
+        # Allow reclaiming memory
+        result = None
+        lla_per_sec = None
+
         if len(self.GS_lat_long) != 0:
             fac_cbf = self.to_cbf(self.GS_lat_long, len(self.GS_lat_long))
 
@@ -315,3 +320,8 @@ class Observer():
                                  bound_dis, alpha, self.antenna_number, path)
         self.matrix_to_change(self.duration, self.orbit_number,
                               self.sat_number, path, self.GS_lat_long)
+
+
+    def __print_progress(self, time_index: int, duration: int, msg: str):
+        if time_index % 10 == 0 or time_index == duration:
+            print(f'{msg}: {time_index} of {duration}')
