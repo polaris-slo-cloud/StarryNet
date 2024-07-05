@@ -276,7 +276,7 @@ class Observer():
                     raan,  # nodeo: right ascension of ascending node (radians)
                 )
                 sat = EarthSatellite.from_satrec(satrec, ts)
-                cur = datetime(2022, 1, 1, 1, 0, 0)
+                cur = datetime(2024, 7, 2, 1, 0, 0)
                 t_ts = ts.utc(*cur.timetuple()[:5],
                               range(duration))  # [:4]:minute，[:5]:second
                 geocentric = sat.at(t_ts)
@@ -294,7 +294,7 @@ class Observer():
                     lla_per_sec[t].append(lla)
 
         for t in range(duration):
-            file = path + '/position/' + '%d.txt' % t
+            file = f'{path}/position/{t + 1}.txt'
             with open(file, 'w') as fw:
                 fw.writelines(result[t])
             cbf_per_sec = self.to_cbf(lla_per_sec[t], num_of_sat)
