@@ -277,7 +277,8 @@ class Observer():
                 )
                 sat = EarthSatellite.from_satrec(satrec, ts)
                 cur = datetime(2022, 1, 1, 1, 0, 0)
-                t_ts = ts.utc(*cur.timetuple()[:5],
+                # HyperDrive ToDo: we changed this to minutes, but we still need to adapt the duration key in the config.json file.
+                t_ts = ts.utc(*cur.timetuple()[:4],
                               range(duration))  # [:4]:minute，[:5]:second
                 geocentric = sat.at(t_ts)
                 subpoint = wgs84.subpoint(geocentric)
