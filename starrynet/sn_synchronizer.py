@@ -16,6 +16,7 @@ class StarryNet():
                  configuration_file_path,
                  GS_lat_long,
                  sats_per_orbit_override: int | None = None,
+                 duration_override: int | None = None,
                  hello_interval=10,
                  AS: list[list[int]] | None = None):
         # Initialize constellation information.
@@ -32,7 +33,7 @@ class StarryNet():
         self.IP_version = sn_args.IP_version
         self.link_policy = sn_args.link_policy
         self.update_interval = sn_args.update_interval
-        self.duration = sn_args.duration
+        self.duration = duration_override or sn_args.duration
         self.inter_routing = sn_args.inter_routing
         self.intra_routing = sn_args.intra_routing
         self.cycle = sn_args.cycle
