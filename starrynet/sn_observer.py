@@ -318,8 +318,9 @@ class Observer():
                                  self.orbit_number, self.sat_number,
                                  self.duration, self.GS_lat_long, sat_lla,
                                  bound_dis, alpha, self.antenna_number, path)
-        self.matrix_to_change(self.duration, self.orbit_number,
-                              self.sat_number, path, self.GS_lat_long)
+        ## Not needed for HyperDrive experiments
+        # self.matrix_to_change(self.duration, self.orbit_number,
+        #                       self.sat_number, path, self.GS_lat_long)
 
 
     def __print_progress(self, time_index: int, duration: int, msg: str):
