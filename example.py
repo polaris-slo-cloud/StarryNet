@@ -71,7 +71,9 @@ if __name__ == "__main__":
     next_hop_sat = 2
     time_index = 20
     # set the next hop at a certain time. Sat, Des and NextHopSat are indexes and Sat and NextHopSat are neighbors.
-    sn.set_next_hop(sat, des, next_hop_sat, time_index)
+    # Disable this, because there is a problem with the sn_sr() method and we don't know what it does.
+    # Additionally, we want to benchmark the simulation of the constellation only. We don't want to run any commands in the containers.
+    # sn.set_next_hop(sat, des, next_hop_sat, time_index)
 
     node_index1 = 13
     node_index2 = 14
