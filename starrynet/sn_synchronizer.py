@@ -13,10 +13,11 @@ class StarryNet():
     def __init__(self,
                  configuration_file_path,
                  GS_lat_long,
+                 hello_interval=10,
+                 AS: list[list[int]] | None = None,
                  sats_per_orbit_override: int | None = None,
                  duration_override: int | None = None,
-                 hello_interval=10,
-                 AS: list[list[int]] | None = None):
+                ):
         # Initialize constellation information.
         sn_args = sn_load_file(configuration_file_path, GS_lat_long)
         self.name = sn_args.cons_name
