@@ -689,7 +689,7 @@ def sn_recover(damage_list, sat_loss, remote_ssh, remote_ftp, file_path,
 def sn_sr(src, des, target, container_id_list, remote_ssh):
     ifconfig_output = sn_remote_cmd(
         remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-        " ifconfig | sed 's/[ \t].*//;/^\(eth0\|\)\(lo\|\)$/d'")
+        " ifconfig | sed 's/[ \t].*//;/^(eth0|)(lo|)$/d'")
     des_IP = sn_remote_cmd(
         remote_ssh,
         "docker exec -it " + str(container_id_list[des - 1]) + " ifconfig " +
@@ -715,7 +715,7 @@ def sn_ping(src, des, time_index, constellation_size, container_id_list,
     if des <= constellation_size:
         ifconfig_output = sn_remote_cmd(
             remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig | sed 's/[ \t].*//;/^\(eth0\|\)\(lo\|\)$/d'")
+            " ifconfig | sed 's/[ \t].*//;/^(eth0|)(lo|)$/d'")
         des_IP = sn_remote_cmd(
             remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
             " ifconfig " + ifconfig_output[0][:-1] +
@@ -740,7 +740,7 @@ def sn_perf(src, des, time_index, constellation_size, container_id_list,
     if des <= constellation_size:
         ifconfig_output = sn_remote_cmd(
             remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
-            " ifconfig | sed 's/[ \t].*//;/^\(eth0\|\)\(lo\|\)$/d'")
+            " ifconfig | sed 's/[ \t].*//;/^(eth0|)(lo|)$/d'")
         des_IP = sn_remote_cmd(
             remote_ssh, "docker exec -it " + str(container_id_list[des - 1]) +
             " ifconfig " + ifconfig_output[0][:-1] +
