@@ -6,7 +6,7 @@ from datetime import datetime
 import numpy as np
 import os
 
-from starrynet.sn_utils import *
+from .sn_utils import *
 
 _ = inf = 999999  # inf
 

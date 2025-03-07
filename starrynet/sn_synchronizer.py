@@ -4,8 +4,8 @@
 StarryNet: empowering researchers to evaluate futuristic integrated space and terrestrial networks.
 author: Zeqi Lai (zeqilai@tsinghua.edu.cn) and Yangtao Deng (dengyt21@mails.tsinghua.edu.cn)
 """
-from starrynet.sn_observer import *
-from starrynet.sn_utils import *
+from .sn_observer import *
+from .sn_utils import *
 
 
 class StarryNet():
