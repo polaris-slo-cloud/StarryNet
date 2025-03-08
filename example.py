@@ -79,13 +79,15 @@ if __name__ == "__main__":
     node_index2 = 14
     time_index = 3
     # ping msg of two nodes at a certain time. The output file will be written at the working directory.
-    sn.set_ping(node_index1, node_index2, time_index)
-    for i in range(35, 80):
-        node_index1 = 26
-        node_index2 = 27
-        time_index = i
-        # ping msg of two nodes at a certain time. The output file will be written at the working directory.
-        sn.set_ping(node_index1, node_index2, time_index)
+    #
+    # There is some error with ping as well, so we disable it.
+    # sn.set_ping(node_index1, node_index2, time_index)
+    # for i in range(35, 80):
+    #     node_index1 = 26
+    #     node_index2 = 27
+    #     time_index = i
+    #     # ping msg of two nodes at a certain time. The output file will be written at the working directory.
+    #     sn.set_ping(node_index1, node_index2, time_index)
 
     node_index1 = 13
     node_index2 = 14
